@@ -36,11 +36,11 @@ Route::screen('/courses', CoursesScreen::class)
         ->parent('platform.index')
         ->push(__('Courses'), route('platform.main')));
 
-Route::screen('/courses/{course}', CourseDetailsScreen::class)
-    ->name('platform.course.details');
-
 Route::screen('/courses/create', CourseCreateScreen::class)
     ->name('platform.course.create');
+
+Route::screen('/courses/{course}', CourseDetailsScreen::class)
+    ->name('platform.course.details');
 
 // Platform > Profile
 Route::screen('profile', UserProfileScreen::class)

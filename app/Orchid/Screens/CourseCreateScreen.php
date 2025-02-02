@@ -5,15 +5,12 @@ namespace App\Orchid\Screens;
 use App\Models\Course;
 use Orchid\Screen\Screen;
 use Orchid\Screen\Fields\Input;
-use Orchid\Screen\Fields\TextArea;
 use Orchid\Screen\Actions\Button;
 use Orchid\Support\Facades\Layout;
+use Illuminate\Http\Request;
 
 class CourseCreateScreen extends Screen
 {
-    public $name = 'Create Course';
-    public $description = 'Create a new course';
-
     /**
      * The model instance.
      *
@@ -41,17 +38,24 @@ class CourseCreateScreen extends Screen
     /**
      * Handle the form submission.
      */
-    public function save()
+    public function save(Request $request)
     {
-
-        $this->course->fill([
-            'name' => request('name'),
-            'students' => json_decode(request('students'), true),
-            'assignments' => json_decode(request('assignments'), true),
-            'materials' => json_decode(request('materials'), true),
+        // Validate only the 'name' field as required
+        $validatedData = $request->validate([
+            'course.name' => 'required|string|max:255',  // Ensure 'name' is not null and is a string
         ]);
+
+        // Fill the course model with validated data
+        $this->course->fill([
+            'name' => $validatedData['course']['name'],
+            // Students, assignments, and materials will remain empty (null)
+        ]);
+
+        // Save the course
         $this->course->save();
-        return redirect()->route('platform.course.list'); // Redirect after saving
+
+        // Redirect to the 'platform.courses' route after saving
+        return redirect()->route('platform.courses');
     }
 
     /**
@@ -63,28 +67,13 @@ class CourseCreateScreen extends Screen
     {
         return [
             Layout::rows([
-                Input::make('name')
+                Input::make('course.name')
                     ->title('Course Name')
                     ->placeholder('Enter course name')
-                    ->required(),
-
-                TextArea::make('students')
-                    ->title('Students (JSON format)')
-                    ->placeholder('Enter students list in JSON format e.g. ["Student 1", "Student 2"]'),
-
-                TextArea::make('assignments')
-                    ->title('Assignments (JSON format)')
-                    ->placeholder('Enter assignments in JSON format e.g. ["Assignment 1", "Assignment 2"]'),
-
-                TextArea::make('materials')
-                    ->title('Materials (JSON format)')
-                    ->placeholder('Enter materials in JSON format e.g. ["Material 1", "Material 2"]'),
-            ]),
-
-            Layout::actions([
+                    ->required(),  // Only the name is required
                 Button::make('Save')
                     ->method('save')
-            ]),
+            ])
         ];
     }
 }
