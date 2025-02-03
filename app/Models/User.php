@@ -6,6 +6,7 @@ use Orchid\Filters\Types\Like;
 use Orchid\Filters\Types\Where;
 use Orchid\Filters\Types\WhereDateStartEnd;
 use Orchid\Platform\Models\User as Authenticatable;
+use App\Models\Classroom;
 
 class User extends Authenticatable
 {
@@ -66,4 +67,14 @@ class User extends Authenticatable
         'updated_at',
         'created_at',
     ];
+
+    public function classrooms()
+{
+    return $this->belongsToMany(Classroom::class, 'classroom_student', 'student_id', 'classroom_id');
+}
+
+public function taughtClassrooms()
+{
+    return $this->hasMany(Classroom::class, 'teacher_id');
+}
 }
