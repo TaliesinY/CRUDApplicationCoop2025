@@ -23,7 +23,6 @@ class CoursesScreen extends Screen
 
     /**
      * The name of the screen displayed in the header.
-     *
      * @return string|null
      */
     public function name(): ?string
@@ -50,7 +49,7 @@ class CoursesScreen extends Screen
         return [
             Link::make('Create Course')
                 ->icon('bs.plus-circle')
-                ->route('platform.course.create'), // Create course screen if needed
+                ->route('platform.course.create'),
         ];
     }
 

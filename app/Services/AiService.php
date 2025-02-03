@@ -13,7 +13,7 @@ class AiService
     public function __construct()
     {
         $this->client = new Client();
-        $this->apiKey = env('HUGGING_FACE_API_KEY'); // Ensure this matches your .env file
+        $this->apiKey = env('HUGGING_FACE_API_KEY');
     }
 
     public function askQuestion(string $prompt): string

@@ -40,21 +40,17 @@ class CourseCreateScreen extends Screen
      */
     public function save(Request $request)
     {
-        // Validate only the 'name' field as required
         $validatedData = $request->validate([
-            'course.name' => 'required|string|max:255',  // Ensure 'name' is not null and is a string
+            'course.name' => 'required|string|max:255',
         ]);
 
         // Fill the course model with validated data
         $this->course->fill([
             'name' => $validatedData['course']['name'],
-            // Students, assignments, and materials will remain empty (null)
+
         ]);
 
-        // Save the course
         $this->course->save();
-
-        // Redirect to the 'platform.courses' route after saving
         return redirect()->route('platform.courses');
     }
 
@@ -70,7 +66,7 @@ class CourseCreateScreen extends Screen
                 Input::make('course.name')
                     ->title('Course Name')
                     ->placeholder('Enter course name')
-                    ->required(),  // Only the name is required
+                    ->required(),
                 Button::make('Save')
                     ->method('save')
             ])

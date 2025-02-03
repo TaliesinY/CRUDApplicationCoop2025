@@ -34,17 +34,15 @@ class CourseDetailsScreen extends Screen
         return [
             Layout::tabs([
                 'Stream' => Layout::rows([
-                    // Display assignments and materials in a single stream
-                    ...$this->getStreamContent(), // Spread the array of Label objects
+
+                    ...$this->getStreamContent(),
                 ]),
 
                 'Assignments' => Layout::rows([
-                    // Display only assignments in a separate tab
-                    ...$this->getAssignmentsContent(), // Spread the array of Label objects
+                    ...$this->getAssignmentsContent(),
                 ]),
 
                 'Students' => Layout::rows([
-                    // Display students in a separate tab
                     Label::make('students')->title('Students')->value(implode(', ', $this->course->students ?? [])),
                 ]),
             ]),
@@ -56,7 +54,6 @@ class CourseDetailsScreen extends Screen
      */
     protected function getStreamContent(): array
     {
-        // Combine assignments and materials into a single array
         $assignments = $this->course->assignments ?? [];
         $materials = $this->course->materials ?? [];
 
@@ -87,7 +84,6 @@ class CourseDetailsScreen extends Screen
             return strtotime($b['date']) - strtotime($a['date']);
         });
 
-        // Generate the stream content as an array of Label objects
         $streamContent = [];
         foreach ($stream as $item) {
             $streamContent[] = Label::make('')
@@ -107,7 +103,6 @@ class CourseDetailsScreen extends Screen
 
         $assignmentsContent = [];
 
-        // Add assignments to the assignments tab as an array of Label objects
         foreach ($assignments as $assignment) {
             $assignmentsContent[] = Label::make('')
                 ->title('Assignment: ' . $assignment['title'])

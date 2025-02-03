@@ -37,14 +37,14 @@ Route::screen('/courses', CoursesScreen::class)
         ->parent('platform.index')
         ->push(__('Courses'), route('platform.courses')));
 
-
+// Create Course
 Route::screen('/courses/create', CourseCreateScreen::class)
     ->name('platform.course.create')
     ->breadcrumbs(fn (Trail $trail) => $trail
         ->parent('platform.courses')
         ->push(__('Create'), route('platform.course.create')));
 
-
+// Course Details
 Route::screen('/courses/{course}', CourseDetailsScreen::class)
     ->name('platform.course.details')
     ->breadcrumbs(fn (Trail $trail, $course) => $trail
