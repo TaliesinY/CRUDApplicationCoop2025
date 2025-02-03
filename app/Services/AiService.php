@@ -13,15 +13,9 @@ class AiService
     public function __construct()
     {
         $this->client = new Client();
-        $this->apiKey = env('HUGGING_FACE_API_KEY'); // Load the API key from the .env file
+        $this->apiKey = env('HUGGING_FACE_API_KEY'); // Ensure this matches your .env file
     }
 
-    /**
-     * Send a prompt to the Hugging Face Inference API and get a response.
-     *
-     * @param string $prompt The user's question or input.
-     * @return string The AI's response.
-     */
     public function askQuestion(string $prompt): string
     {
         try {
@@ -32,8 +26,13 @@ class AiService
                 ],
                 'json' => [
                     'inputs' => $prompt,
+                    'parameters' => [
+                        'max_tokens' => 100,   // Limit the response length
+                        'temperature' => 0.3,   // Control randomness (lower means more deterministic)
+                    ]
                 ],
             ]);
+
 
             $data = json_decode($response->getBody(), true);
             return $data[0]['generated_text'] ?? 'Sorry, I could not generate a response.';

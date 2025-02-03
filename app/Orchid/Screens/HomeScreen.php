@@ -7,7 +7,7 @@ use Orchid\Screen\Fields\TextArea;
 use Orchid\Screen\Actions\Button;
 use Orchid\Support\Facades\Layout;
 use Illuminate\Http\Request;
-use App\Services\AiService; // Ensure this import is correct
+use App\Services\AiService;
 
 class HomeScreen extends Screen
 {
@@ -51,17 +51,24 @@ class HomeScreen extends Screen
                 TextArea::make('response')
                     ->title('AI Response')
                     ->readonly()
-                    ->rows(10),
+                    ->rows(10)
+                    ->value(session('response', '')),
             ]),
         ];
     }
+
 
     /**
      * Handle the form submission.
      */
     public function askQuestion(Request $request, AiService $aiService)
     {
-        $this->question = $request->input('question');
-        $this->response = $aiService->askQuestion($this->question);
+        $question = $request->input('question');
+        $response = $aiService->askQuestion($question);
+
+        return redirect()->route('platform.main')->with([
+            'question' => $question,
+            'response' => $response,
+        ]);
     }
 }
