@@ -12,6 +12,7 @@ use App\Orchid\Screens\User\UserEditScreen;
 use App\Orchid\Screens\User\UserListScreen;
 use App\Orchid\Screens\User\UserProfileScreen;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AIController;
 use Tabuna\Breadcrumbs\Trail;
 
 /*
@@ -34,13 +35,22 @@ Route::screen('/courses', CoursesScreen::class)
     ->name('platform.courses')
     ->breadcrumbs(fn (Trail $trail) => $trail
         ->parent('platform.index')
-        ->push(__('Courses'), route('platform.main')));
+        ->push(__('Courses'), route('platform.courses')));
+
 
 Route::screen('/courses/create', CourseCreateScreen::class)
-    ->name('platform.course.create');
+    ->name('platform.course.create')
+    ->breadcrumbs(fn (Trail $trail) => $trail
+        ->parent('platform.courses')
+        ->push(__('Create'), route('platform.course.create')));
+
 
 Route::screen('/courses/{course}', CourseDetailsScreen::class)
-    ->name('platform.course.details');
+    ->name('platform.course.details')
+    ->breadcrumbs(fn (Trail $trail, $course) => $trail
+        ->parent('platform.courses')
+        ->push($course->name, route('platform.course.details', $course)));
+
 
 // Platform > Profile
 Route::screen('profile', UserProfileScreen::class)
