@@ -22,6 +22,6 @@ class Course extends Model
         'students' => 'array',
         'assignments' => 'array',
         'materials' => 'array',
-        'announcement' => 'string',
+        'announcement' => 'array',
     ];
 }

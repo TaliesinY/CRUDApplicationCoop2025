@@ -9,6 +9,8 @@ use App\Orchid\Screens\AssignmentEditScreen;
 use App\Orchid\Screens\MaterialEditScreen;
 use App\Orchid\Screens\CourseCreateScreen;
 use App\Orchid\Screens\CourseEditScreen;
+use App\Orchid\Screens\AssignmentDetailsScreen;
+use App\Orchid\Screens\MaterialDetailsScreen;
 use App\Orchid\Screens\Role\RoleEditScreen;
 use App\Orchid\Screens\Role\RoleListScreen;
 use App\Orchid\Screens\User\UserEditScreen;
@@ -67,6 +69,11 @@ Route::screen('/courses/{course}/assignments/{index}/edit', AssignmentEditScreen
 Route::screen('/courses/{course}/materials/{index}/edit', MaterialEditScreen::class)
         ->name('platform.material.edit');
 
+Route::screen('course/{course}/assignment/{assignment}', AssignmentDetailsScreen::class)
+        ->name('platform.assignment.details');
+
+Route::screen('course/{course}/material/{material}', MaterialDetailsScreen::class)
+        ->name('platform.material.details');
 
 // Edit Course
 Route::screen('/courses/{course}/edit', CourseEditScreen::class)

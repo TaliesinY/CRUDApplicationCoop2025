@@ -92,16 +92,24 @@ class CourseDetailsScreen extends Screen
 
 
 
-public function postAnnouncement(Request $request, Course $course)
-{
-    $announcement = $request->input('announcement');
+    public function postAnnouncement(Request $request, Course $course)
+    {
+        $announcement = $request->input('announcement');
 
-    // Save the announcement logic here
-    $course->announcement = $announcement; // Example of saving to a course model
-    $course->save();
+        // Append the announcement to the existing announcements
+        $announcements = $course->announcement ?? [];
+        $announcements[] = [
+            'text' => $announcement,
+            'date' => now()->format('Y-m-d'),
+        ];
 
-    return redirect()->route('platform.course.details', $course);
-}
+        // Save the new list of announcements
+        $course->announcement = $announcements;
+        $course->save();
+
+        return redirect()->route('platform.course.details', $course);
+    }
+
 
 
 protected function getAssignmentsContent(): array
@@ -152,25 +160,37 @@ public function deleteAssignment(Request $request)
     {
         $stream = [];
 
-        // Add announcement to the stream if exists
+        // Add announcements to the stream (if multiple announcements are stored)
         if ($this->course->announcement) {
-            $stream[] = Label::make('')
-                ->title('Announcement: ' . $this->course->announcement)
-                ->value('Posted on: ' . now()->format('Y-m-d'));
+            foreach ($this->course->announcement as $announcement) {
+                $stream[] = Label::make('')
+                    ->title('Announcement: ' . $announcement['text'])
+                    ->value('Posted on: ' . $announcement['date']);
+            }
         }
 
-        // Add assignments to the stream
-        foreach ($this->course->assignments ?? [] as $assignment) {
-            $stream[] = Label::make('')
-                ->title('Assignment: ' . $assignment['title'])
-                ->value('Posted on: ' . ($assignment['date'] ?? now()->format('Y-m-d')) . '<br>' . $assignment['description']);
+        // Add assignments to the stream with links
+        foreach ($this->course->assignments ?? [] as $index => $assignment) {
+            $stream[] = Link::make('Assignment: ' . $assignment['title'])
+                ->route('platform.assignment.details', [
+                    'course' => $this->course->id,
+                    'assignment' => $index,  // Pass index or ID of the assignment
+                ])
+                ->title('Click to view details')
+                ->icon('fa fa-file');
         }
 
-        // Add materials to the stream
-        foreach ($this->course->materials ?? [] as $material) {
-            $stream[] = Label::make('')
-                ->title('Material: ' . $material['title'])
-                ->value('Uploaded on: ' . ($material['date'] ?? now()->format('Y-m-d')));
+        // Add materials to the stream with links
+        foreach ($this->course->materials ?? [] as $index => $material) {
+            if (isset($material['attachment']) && !empty($material['attachment'])) {
+                $stream[] = Link::make('Material: ' . $material['title'])
+                    ->route('platform.material.details', [
+                        'course' => $this->course->id,
+                        'material' => $index,  // Pass index or ID of the material
+                    ])
+                    ->title('Click to view details')
+                    ->icon('fa fa-file');
+            }
         }
 
         // Sort the stream by date (newest first)
@@ -180,7 +200,6 @@ public function deleteAssignment(Request $request)
 
         return $stream;
     }
-
 
     /**
      * Generate the students content.
@@ -239,7 +258,7 @@ public function deleteAssignment(Request $request)
     public function uploadMaterial(Request $request)
     {
         $materialTitle = $request->input('material.title');
-        $materialAttachment = $request->file('material.attachment');  // Changed to handle file input
+        $materialAttachment = $request->file('material.attachment');  // Handle file input
 
         $materials = $this->course->materials ?? [];
 
@@ -251,13 +270,7 @@ public function deleteAssignment(Request $request)
 
             $materials[] = [
                 'title' => $materialTitle,
-                'attachment' => $attachment->url,
-                'date' => now()->format('Y-m-d'),
-            ];
-        } else {
-            $materials[] = [
-                'title' => $materialTitle,
-                'attachment' => null,
+                'attachment' => $attachment->url,  // Store the URL of the uploaded file
                 'date' => now()->format('Y-m-d'),
             ];
         }
@@ -269,18 +282,32 @@ public function deleteAssignment(Request $request)
     }
 
 
+
     protected function getMaterialsContent(): array
     {
         $fields = [];
         foreach ($this->course->materials ?? [] as $index => $material) {
+            // Add a label for the material title and date
             $fields[] = Label::make('')
                 ->title('Material: ' . $material['title'])
                 ->value('Uploaded on: ' . ($material['date'] ?? now()->format('Y-m-d')));
+
+            // Add the download link if the material has an attachment
+            if (isset($material['attachment']) && !empty($material['attachment'])) {
+                $fields[] = Link::make('Download Material')
+                    ->href($material['attachment'])
+                    ->title('Click to download')
+                    ->icon('fa fa-download');
+            }
+
+            // Add a button to delete the material
             $fields[] = Button::make('Delete Material')
                 ->method('deleteMaterial')
                 ->parameters(['index' => $index]);
         }
+
         return $fields;
     }
+
 
 }
