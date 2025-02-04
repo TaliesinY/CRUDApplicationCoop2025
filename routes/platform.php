@@ -47,6 +47,11 @@ Route::screen('/courses/create', CourseCreateScreen::class)
         ->parent('platform.courses')
         ->push(__('Create'), route('platform.course.create')));
 
+// Post Announcement
+Route::post('/courses/{course}/postAnnouncement', [CourseDetailsScreen::class, 'postAnnouncement'])
+    ->name('platform.course.postAnnouncement');
+
+
 // Course Details
 Route::screen('/courses/{course}', CourseDetailsScreen::class)
     ->name('platform.course.details')
@@ -61,6 +66,7 @@ Route::screen('/courses/{course}/assignments/{index}/edit', AssignmentEditScreen
 // Edit Material
 Route::screen('/courses/{course}/materials/{index}/edit', MaterialEditScreen::class)
         ->name('platform.material.edit');
+
 
 // Edit Course
 Route::screen('/courses/{course}/edit', CourseEditScreen::class)

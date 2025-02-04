@@ -39,66 +39,89 @@ class CourseDetailsScreen extends Screen
     }
 
     public function layout(): array
+    {
+        return [
+            Layout::tabs([
+                'Stream' => Layout::rows([
+                    TextArea::make('announcement')
+                        ->title('Post an Announcement')
+                        ->placeholder('Enter your announcement...')
+                        ->rows(3),
+                    Button::make('Post Announcement')
+                        ->method('postAnnouncement'),
+                    ...$this->getStreamContent(),
+                ]),
+
+                'Assignments' => Layout::rows([
+                    Input::make('assignment.title')
+                        ->title('Assignment Title')
+                        ->placeholder('Enter assignment title'),
+                    TextArea::make('assignment.description')
+                        ->title('Assignment Description')
+                        ->placeholder('Enter assignment description'),
+                    Button::make('Post Assignment')
+                        ->method('postAssignment'),
+                    ...$this->getAssignmentsContent(),
+                ]),
+
+                'Materials' => Layout::rows([
+                    Input::make('material.title')
+                        ->title('Material Title')
+                        ->placeholder('Enter material title'),
+                    Upload::make('material.attachment')
+                        ->title('Upload Material')
+                        ->acceptedFiles('.pdf,.doc,.docx,.ppt,.pptx'),
+                    Button::make('Upload Material')
+                        ->method('uploadMaterial'),
+                    ...$this->getMaterialsContent(),
+                ]),
+
+                'Students' => Layout::rows([
+                    Input::make('student.name')
+                        ->title('Student Name')
+                        ->placeholder('Enter student name'),
+                    Button::make('Add Student')
+                        ->method('addStudent'),
+                        ...$this->getStudentsContent(),
+                ]),
+
+            ]),
+        ];
+    }
+
+
+
+
+public function postAnnouncement(Request $request, Course $course)
 {
-    return [
-        Layout::tabs([
-            'Stream' => Layout::rows([
-                TextArea::make('announcement')
-                    ->title('Post an Announcement')
-                    ->placeholder('Enter your announcement...')
-                    ->rows(3),
-                Button::make('Post Announcement')
-                    ->method('postAnnouncement'),
-                ...$this->getStreamContent(),
-            ]),
+    $announcement = $request->input('announcement');
 
-            'Assignments' => Layout::rows([
-                Input::make('assignment.title')
-                    ->title('Assignment Title')
-                    ->placeholder('Enter assignment title'),
-                TextArea::make('assignment.description')
-                    ->title('Assignment Description')
-                    ->placeholder('Enter assignment description'),
-                Button::make('Post Assignment')
-                    ->method('postAssignment'),
-                ...$this->getAssignmentsContent(),
-            ]),
+    // Save the announcement logic here
+    $course->announcement = $announcement; // Example of saving to a course model
+    $course->save();
 
-            'Materials' => Layout::rows([
-                Input::make('material.title')
-                    ->title('Material Title')
-                    ->placeholder('Enter material title'),
-                Upload::make('material.attachment')
-                    ->title('Upload Material')
-                    ->acceptedFiles('.pdf,.doc,.docx,.ppt,.pptx'),
-                Button::make('Upload Material')
-                    ->method('uploadMaterial'),
-                ...$this->getMaterialsContent(),
-            ]),
-
-            'Students' => Layout::rows([
-                ...$this->getStudentsContent(),
-            ]),
-        ]),
-    ];
+    return redirect()->route('platform.course.details', $course);
 }
+
 
 protected function getAssignmentsContent(): array
 {
-    return array_map(function ($assignment, $index) {
-        return Layout::rows([
-            Label::make('')
-                ->title('Assignment: ' . $assignment['title'])
-                ->value('Posted on: ' . ($assignment['date'] ?? now()->format('Y-m-d')) . '<br>' . $assignment['description']),
-            Button::make('Edit Assignment')
-                ->method('editAssignment')
-                ->parameters(['index' => $index]),
-            Button::make('Delete Assignment')
-                ->method('deleteAssignment')
-                ->parameters(['index' => $index]),
-        ]);
-    }, $this->course->assignments ?? [], array_keys($this->course->assignments ?? []));
+    $fields = [];
+    foreach ($this->course->assignments ?? [] as $index => $assignment) {
+        $fields[] = Label::make('')
+            ->title('Assignment: ' . $assignment['title'])
+            ->value('Posted on: ' . ($assignment['date'] ?? now()->format('Y-m-d')) . '<br>' . $assignment['description']);
+        $fields[] = Button::make('Edit Assignment')
+            ->method('editAssignment')
+            ->parameters(['index' => $index]);
+        $fields[] = Button::make('Delete Assignment')
+            ->method('deleteAssignment')
+            ->parameters(['index' => $index]);
+    }
+    return $fields;
 }
+
+
 
 public function editAssignment(Request $request)
 {
@@ -129,6 +152,13 @@ public function deleteAssignment(Request $request)
     {
         $stream = [];
 
+        // Add announcement to the stream if exists
+        if ($this->course->announcement) {
+            $stream[] = Label::make('')
+                ->title('Announcement: ' . $this->course->announcement)
+                ->value('Posted on: ' . now()->format('Y-m-d'));
+        }
+
         // Add assignments to the stream
         foreach ($this->course->assignments ?? [] as $assignment) {
             $stream[] = Label::make('')
@@ -151,6 +181,7 @@ public function deleteAssignment(Request $request)
         return $stream;
     }
 
+
     /**
      * Generate the students content.
      */
@@ -165,6 +196,21 @@ public function deleteAssignment(Request $request)
 
         return $studentsContent;
     }
+
+    public function addStudent(Request $request)
+{
+    $studentName = $request->input('student.name');
+
+    if ($studentName) {
+        $students = $this->course->students ?? [];
+        $students[] = ['name' => $studentName];
+        $this->course->students = $students;
+        $this->course->save();
+    }
+
+    return redirect()->route('platform.course.details', $this->course);
+}
+
 
     /**
      * Handle the form submission for posting an assignment.
@@ -193,36 +239,48 @@ public function deleteAssignment(Request $request)
     public function uploadMaterial(Request $request)
     {
         $materialTitle = $request->input('material.title');
-        $materialAttachment = $request->input('material.attachment');
+        $materialAttachment = $request->file('material.attachment');  // Changed to handle file input
 
-        // Save the uploaded file
-        $attachment = Attachment::find($materialAttachment);
-
-        // Add the new material to the course
         $materials = $this->course->materials ?? [];
-        $materials[] = [
-            'title' => $materialTitle,
-            'attachment' => $attachment->url,
-            'date' => now()->format('Y-m-d'),
-        ];
+
+        // Handle file upload if available
+        if ($materialAttachment) {
+            $attachment = Attachment::create([
+                'file' => $materialAttachment,
+            ]);
+
+            $materials[] = [
+                'title' => $materialTitle,
+                'attachment' => $attachment->url,
+                'date' => now()->format('Y-m-d'),
+            ];
+        } else {
+            $materials[] = [
+                'title' => $materialTitle,
+                'attachment' => null,
+                'date' => now()->format('Y-m-d'),
+            ];
+        }
+
         $this->course->materials = $materials;
         $this->course->save();
 
         return redirect()->route('platform.course.details', $this->course);
     }
 
+
     protected function getMaterialsContent(): array
-{
-    return array_map(function ($material, $index) {
-        return Layout::rows([
-            Label::make('')
+    {
+        $fields = [];
+        foreach ($this->course->materials ?? [] as $index => $material) {
+            $fields[] = Label::make('')
                 ->title('Material: ' . $material['title'])
-                ->value('Uploaded on: ' . ($material['date'] ?? now()->format('Y-m-d'))),
-            Button::make('Delete Material')
+                ->value('Uploaded on: ' . ($material['date'] ?? now()->format('Y-m-d')));
+            $fields[] = Button::make('Delete Material')
                 ->method('deleteMaterial')
-                ->parameters(['index' => $index]),
-        ]);
-    }, $this->course->materials ?? [], array_keys($this->course->materials ?? []));
-}
+                ->parameters(['index' => $index]);
+        }
+        return $fields;
+    }
 
 }
