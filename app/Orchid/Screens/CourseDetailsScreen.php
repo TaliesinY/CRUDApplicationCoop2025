@@ -92,16 +92,24 @@ class CourseDetailsScreen extends Screen
 
 
 
-public function postAnnouncement(Request $request, Course $course)
-{
-    $announcement = $request->input('announcement');
+    public function postAnnouncement(Request $request, Course $course)
+    {
+        $newAnnouncement = [
+            'text' => $request->input('announcement'),
+            'date' => now()->toDateTimeString(),
+        ];
 
-    // Save the announcement logic here
-    $course->announcement = $announcement; // Example of saving to a course model
-    $course->save();
+        // Retrieve existing announcements and add the new one
+        $announcements = $course->announcements ?? [];
+        $announcements[] = $newAnnouncement;
 
-    return redirect()->route('platform.course.details', $course);
-}
+        // Save the updated list of announcements
+        $course->announcements = $announcements;
+        $course->save();
+
+        return redirect()->route('platform.course.details', $course);
+    }
+
 
 
 protected function getAssignmentsContent(): array
@@ -152,14 +160,14 @@ public function deleteAssignment(Request $request)
     {
         $stream = [];
 
-        // Add announcement to the stream if exists
-        if ($this->course->announcement) {
+        // Add all announcements
+        foreach ($this->course->announcements ?? [] as $announcement) {
             $stream[] = Label::make('')
-                ->title('Announcement: ' . $this->course->announcement)
-                ->value('Posted on: ' . now()->format('Y-m-d'));
+                ->title('Announcement: ' . $announcement['text'])
+                ->value('Posted on: ' . $announcement['date']);
         }
 
-        // Add assignments to the stream with links
+        // Add assignments and materials to stream as before
         foreach ($this->course->assignments ?? [] as $index => $assignment) {
             $stream[] = Link::make('Assignment: ' . $assignment['title'])
                 ->route('platform.assignment.details', [
@@ -170,7 +178,6 @@ public function deleteAssignment(Request $request)
                 ->icon('fa fa-file');
         }
 
-        // Add materials to the stream with links
         foreach ($this->course->materials ?? [] as $index => $material) {
             $stream[] = Link::make('Material: ' . $material['title'])
                 ->route('platform.material.details', [
@@ -181,13 +188,10 @@ public function deleteAssignment(Request $request)
                 ->icon('fa fa-file');
         }
 
-        // Sort the stream by date (newest first)
-        usort($stream, function ($a, $b) {
-            return strtotime($b->get('value')) - strtotime($a->get('value'));
-        });
-
         return $stream;
     }
+
+
 
 
     /**

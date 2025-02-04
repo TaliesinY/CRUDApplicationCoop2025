@@ -15,13 +15,13 @@ class Course extends Model
         'students',
         'assignments',
         'materials',
-        'announcement',
+        'announcements',
     ];
 
     protected $casts = [
         'students' => 'array',
         'assignments' => 'array',
         'materials' => 'array',
-        'announcement' => 'array',
+        'announcements' => 'array',
     ];
 }
