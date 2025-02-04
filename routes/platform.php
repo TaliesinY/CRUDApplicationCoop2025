@@ -73,15 +73,19 @@ Route::screen('/courses/{course}/materials/{index}/edit', MaterialEditScreen::cl
 Route::screen('/courses/{course}/edit', CourseEditScreen::class)
         ->name('platform.course.edit');
 
+// Assignment Details
 Route::screen('course/{course}/assignment/{index}', AssignmentDetailsScreen::class)
     ->name('platform.assignment.details');
 
+// Material Details
 Route::screen('course/{course}/material/{index}', MaterialDetailsScreen::class)
     ->name('platform.material.details');
 
+// Course Details (Deleting Material POST)
 Route::post('/courses/{course}/deleteMaterial', [\App\Orchid\Screens\CourseDetailsScreen::class, 'deleteMaterial'])
 ->name('platform.material.delete');
 
+// Course Details (Deleting Assignment POST)
 Route::post('/courses/{course}/deleteAssignment', [\App\Orchid\Screens\CourseDetailsScreen::class, 'deleteAssignment'])
 ->name('platform.assignment.delete');
 
@@ -135,4 +139,3 @@ Route::screen('roles', RoleListScreen::class)
         ->parent('platform.index')
         ->push(__('Roles'), route('platform.systems.roles')));
 
-//Route::screen('idea', Idea::class, 'platform.screens.idea');
