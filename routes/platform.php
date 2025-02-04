@@ -73,6 +73,11 @@ Route::screen('/courses/{course}/materials/{index}/edit', MaterialEditScreen::cl
 Route::screen('/courses/{course}/edit', CourseEditScreen::class)
         ->name('platform.course.edit');
 
+Route::screen('course/{course}/assignment/{index}', AssignmentDetailsScreen::class)
+    ->name('platform.assignment.details');
+
+Route::screen('course/{course}/material/{index}', MaterialDetailsScreen::class)
+    ->name('platform.material.details');
 
 // Platform > Profile
 Route::screen('profile', UserProfileScreen::class)

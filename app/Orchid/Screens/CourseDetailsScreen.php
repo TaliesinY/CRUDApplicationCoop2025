@@ -159,18 +159,26 @@ public function deleteAssignment(Request $request)
                 ->value('Posted on: ' . now()->format('Y-m-d'));
         }
 
-        // Add assignments to the stream
-        foreach ($this->course->assignments ?? [] as $assignment) {
-            $stream[] = Label::make('')
-                ->title('Assignment: ' . $assignment['title'])
-                ->value('Posted on: ' . ($assignment['date'] ?? now()->format('Y-m-d')) . '<br>' . $assignment['description']);
+        // Add assignments to the stream with links
+        foreach ($this->course->assignments ?? [] as $index => $assignment) {
+            $stream[] = Link::make('Assignment: ' . $assignment['title'])
+                ->route('platform.assignment.details', [
+                    'course' => $this->course->id,
+                    'index' => $index,
+                ])
+                ->title('Click to view details')
+                ->icon('fa fa-file');
         }
 
-        // Add materials to the stream
-        foreach ($this->course->materials ?? [] as $material) {
-            $stream[] = Label::make('')
-                ->title('Material: ' . $material['title'])
-                ->value('Uploaded on: ' . ($material['date'] ?? now()->format('Y-m-d')));
+        // Add materials to the stream with links
+        foreach ($this->course->materials ?? [] as $index => $material) {
+            $stream[] = Link::make('Material: ' . $material['title'])
+                ->route('platform.material.details', [
+                    'course' => $this->course->id,
+                    'index' => $index,
+                ])
+                ->title('Click to view details')
+                ->icon('fa fa-file');
         }
 
         // Sort the stream by date (newest first)

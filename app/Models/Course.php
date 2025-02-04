@@ -14,14 +14,14 @@ class Course extends Model
         'name',
         'students',
         'assignments',
-        'materials',  // Keep materials as part of the array
+        'materials',
         'announcement',
     ];
 
     protected $casts = [
         'students' => 'array',
         'assignments' => 'array',
-        'materials' => 'array',  // Materials are stxored as an array
+        'materials' => 'array',
         'announcement' => 'array',
     ];
 }
