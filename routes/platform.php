@@ -69,12 +69,6 @@ Route::screen('/courses/{course}/assignments/{index}/edit', AssignmentEditScreen
 Route::screen('/courses/{course}/materials/{index}/edit', MaterialEditScreen::class)
         ->name('platform.material.edit');
 
-// Assignment Details
-Route::screen('course/{course}/assignment/{assignment}', AssignmentDetailsScreen::class)->name('platform.assignment.details');
-
-// Material Details
-Route::screen('course/{course}/material/{material}', MaterialDetailsScreen::class)->name('platform.material.details');
-
 // Edit Course
 Route::screen('/courses/{course}/edit', CourseEditScreen::class)
         ->name('platform.course.edit');
