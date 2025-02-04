@@ -33,6 +33,11 @@ class MaterialDetailsScreen extends Screen
         return 'Details of the material';
     }
 
+
+    /**
+     * The screen's layout elements.
+     * @return \Orchid\Screen\Layout[]|string[]
+     */
     public function layout(): array
     {
         return [

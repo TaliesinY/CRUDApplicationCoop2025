@@ -12,39 +12,24 @@ use Illuminate\Http\Request;
 
 class CoursesScreen extends Screen
 {
-    /**
-     * Fetch data to be displayed on the screen.
-     *
-     * @return array
-     */
     public function query(): array
     {
         return ['courses' => Course::all(),];
     }
 
-    /**
-     * The name of the screen displayed in the header.
-     * @return string|null
-     */
+
     public function name(): ?string
     {
         return 'Courses';
     }
 
-    /**
-     * Displays a description on the user's screen
-     * directly under the heading.
-     */
+
     public function description(): ?string
     {
         return "Courses enrolled in";
     }
 
-    /**
-     * The screen's action buttons.
-     *
-     * @return \Orchid\Screen\Action[]
-     */
+
     public function commandBar(): array
     {
         return [
@@ -56,55 +41,60 @@ class CoursesScreen extends Screen
 
     /**
      * The screen's layout elements.
-     *
      * @return \Orchid\Screen\Layout[]|string[]
      */
     public function layout(): array
-{
-    return [
-        Layout::table('courses', [
-            TD::make('name', 'Name')
-                ->render(fn ($course) =>
-                    "<a href='" . route('platform.course.details', $course->id) . "'
+    {
+        return [
+            Layout::table('courses', [
+                TD::make('name', 'Name')
+                    ->render(
+                        fn($course) =>
+                        "<a href='" . route('platform.course.details', $course->id) . "'
                         class='text-primary font-bold'
                         style='text-decoration: none;'>"
-                    . e($course->name) .
-                    "</a>"
-                )->width('300px'),
+                            . e($course->name) .
+                            "</a>"
+                    )->width('300px'),
 
-            TD::make('actions', 'Actions')
-                ->render(function ($course) {
-                    return Button::make('Edit Course')
+                TD::make('actions', 'Actions')
+                    ->render(function ($course) {
+                        return Button::make('Edit Course')
                             ->method('editCourse')
                             ->parameters(['id' => $course->id])
                             ->icon('pencil')
                             ->class('btn btn-primary btn-sm')
                             ->render()
-                        . ' ' .
-                        Button::make('Delete Course')
+                            . ' ' .
+                            Button::make('Delete Course')
                             ->method('deleteCourse')
                             ->parameters(['id' => $course->id])
                             ->icon('trash')
                             ->class('btn btn-danger btn-sm')
                             ->render();
-                }),
-        ]),
-    ];
-}
+                    }),
+            ]),
+        ];
+    }
 
 
+    /**
+     * Edits current course.
+     */
+    public function editCourse(Request $request)
+    {
+        $courseId = $request->input('id');
+        return redirect()->route('platform.course.edit', $courseId);
+    }
 
-public function editCourse(Request $request)
-{
-    $courseId = $request->input('id');
-    return redirect()->route('platform.course.edit', $courseId);
-}
+    /**
+     * Deletes a chosen course.
+     */
+    public function deleteCourse(Request $request)
+    {
+        $courseId = $request->input('id');
+        Course::find($courseId)->delete();
 
-public function deleteCourse(Request $request)
-{
-    $courseId = $request->input('id');
-    Course::find($courseId)->delete();
-
-    return redirect()->route('platform.courses');
-}
+        return redirect()->route('platform.courses');
+    }
 }

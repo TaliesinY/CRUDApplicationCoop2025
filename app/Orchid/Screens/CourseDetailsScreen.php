@@ -11,7 +11,6 @@ use Orchid\Screen\Fields\Upload;
 use Orchid\Screen\Actions\Button;
 use Orchid\Screen\Fields\Label;
 use Orchid\Support\Facades\Layout;
-use Orchid\Screen\TD;
 use Illuminate\Http\Request;
 use Orchid\Attachment\Models\Attachment;
 
@@ -21,7 +20,6 @@ class CourseDetailsScreen extends Screen
 
     public function query(Course $course): array
     {
-        // Store the course in a class property for use in other methods.
         $this->course = $course;
         return [
             'course' => $course,
@@ -38,6 +36,7 @@ class CourseDetailsScreen extends Screen
         return 'Details of ' . $this->course->name;
     }
 
+    // Main layout of course screen, including CRUD actions
     public function layout(): array
     {
         return [
@@ -88,6 +87,9 @@ class CourseDetailsScreen extends Screen
         ];
     }
 
+    /**
+     * Post new announcements to course stream.
+     */
     public function postAnnouncement(Request $request, Course $course)
     {
         $newAnnouncement = [
@@ -106,6 +108,9 @@ class CourseDetailsScreen extends Screen
         return redirect()->route('platform.course.details', $course);
     }
 
+    /**
+     * Gets all assignent content in the course.
+     */
     protected function getAssignmentsContent(): array
     {
         $fields = [];
@@ -123,6 +128,9 @@ class CourseDetailsScreen extends Screen
         return $fields;
     }
 
+    /**
+     * Edit existing assignments.
+     */
     public function editAssignment(Request $request)
     {
         $index = $request->input('index');
@@ -194,6 +202,9 @@ class CourseDetailsScreen extends Screen
         return $studentsContent;
     }
 
+    /**
+     * Add a student to the course
+     */
     public function addStudent(Request $request)
     {
         $studentName = $request->input('student.name');
@@ -208,6 +219,9 @@ class CourseDetailsScreen extends Screen
         return redirect()->route('platform.course.details', $this->course);
     }
 
+    /**
+     * Post Assignments to course.
+     */
     public function postAssignment(Request $request)
     {
         $assignmentTitle = $request->input('assignment.title');
@@ -224,6 +238,10 @@ class CourseDetailsScreen extends Screen
 
         return redirect()->route('platform.course.details', $this->course);
     }
+
+    /**
+     * Used for uploading files to materials
+     */
 
     public function uploadMaterial(Request $request)
     {
@@ -257,7 +275,7 @@ class CourseDetailsScreen extends Screen
     }
 
     /**
-     * Updated getMaterialsContent method to include an "Edit Material" button.
+     * Gets all materials content in the course.
      */
     protected function getMaterialsContent(): array
     {

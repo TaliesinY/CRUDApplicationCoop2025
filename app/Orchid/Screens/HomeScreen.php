@@ -14,9 +14,6 @@ class HomeScreen extends Screen
     public $question;
     public $response;
 
-    /**
-     * Fetch data to be displayed on the screen.
-     */
     public function query(): array
     {
         return [
@@ -25,9 +22,7 @@ class HomeScreen extends Screen
         ];
     }
 
-    /**
-     * The name of the screen displayed in the header.
-     */
+
     public function name(): string
     {
         return 'AI Assistant';
@@ -35,6 +30,7 @@ class HomeScreen extends Screen
 
     /**
      * The screen's layout elements.
+     * @return \Orchid\Screen\Layout[]|string[]
      */
     public function layout(): array
     {

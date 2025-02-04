@@ -25,7 +25,7 @@ class AssignmentDetailsScreen extends Screen
 
     public function name(): string
     {
-        return 'Assignment Details: ' . ($this->assignment['title'] ?? 'Not Found');
+        return 'Assignment Details: ' . ($this->assignment['title'] ?? 'Not Found'); // Assignment title or if assignment has no title
     }
 
     public function description(): string

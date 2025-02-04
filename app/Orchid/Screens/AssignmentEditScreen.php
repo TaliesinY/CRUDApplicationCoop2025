@@ -17,7 +17,7 @@ class AssignmentEditScreen extends Screen
 
     public function query(Course $course, int $index): array
     {
-        // Save the injected parameters to properties
+        // Constructors
         $this->course = $course;
         $this->index = $index;
 
@@ -51,7 +51,6 @@ class AssignmentEditScreen extends Screen
 
     public function updateAssignment(Request $request)
     {
-        // Retrieve assignments into a local variable:
         $assignments = $this->course->assignments;
 
         // Update the assignment at the given index:
@@ -61,10 +60,9 @@ class AssignmentEditScreen extends Screen
             'date'        => now()->format('Y-m-d'),
         ];
 
-        // Assign back and save:
+        // Saving and redirecting to stream
         $this->course->assignments = $assignments;
         $this->course->save();
-
         return redirect()->route('platform.course.details', $this->course);
     }
 }

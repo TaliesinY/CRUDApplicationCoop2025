@@ -15,7 +15,7 @@ class ClassroomAddStudentScreen extends Screen
     public function query(): array
     {
         return [
-            'classrooms' => Classroom::where('teacher_id', auth()->id)->get(),
+            'classrooms' => Classroom::where('teacher_id', auth()->id)->get(), //If user has teacher role
             'students' => User::whereHas('roles', function ($query) {
                 $query->where('slug', 'student');
             })->get(),

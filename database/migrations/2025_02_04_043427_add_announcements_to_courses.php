@@ -12,7 +12,7 @@ return new class extends Migration
     public function up()
 {
     Schema::table('courses', function (Blueprint $table) {
-        $table->json('announcements')->nullable(); // Store multiple announcements as JSON
+        $table->json('announcements')->nullable(); // Store multiple announcements as JSON.
     });
 }
 

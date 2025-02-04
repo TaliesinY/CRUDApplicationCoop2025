@@ -33,6 +33,9 @@ class CourseEditScreen extends Screen
         ];
     }
 
+    /**
+     * Edits current course.
+     */
     public function updateCourse(Request $request)
     {
         $this->course->name = $request->input('course.name');

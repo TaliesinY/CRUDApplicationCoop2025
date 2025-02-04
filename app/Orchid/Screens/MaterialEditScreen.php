@@ -31,16 +31,15 @@ class MaterialEditScreen extends Screen
         ];
     }
 
-    /**
-     * Set the screen title.
-     */
+
     public function name(): string
     {
         return 'Edit Material';
     }
 
     /**
-     * Define the layout of the screen.
+     * The screen's layout elements.
+     * @return \Orchid\Screen\Layout[]|string[]
      */
     public function layout(): array
     {
@@ -60,21 +59,18 @@ class MaterialEditScreen extends Screen
     }
 
     /**
-     * Handle updating the material.
+     * Handles updating the material.
      */
     public function updateMaterial(Request $request)
     {
-        // Retrieve the materials array
         $materials = $this->course->materials;
         $material = $materials[$this->index];
 
-        // Get the updated title
         $newTitle = $request->input('material.title');
 
         // Check for a new file upload.
         $uploadedFileId = $request->input('material.attachment');
         if ($uploadedFileId) {
-            // If a new file is uploaded, find its Attachment record.
             $attachment = Attachment::find($uploadedFileId);
             $newAttachmentUrl = $attachment ? $attachment->url : $material['attachment'];
         } else {
@@ -89,7 +85,6 @@ class MaterialEditScreen extends Screen
             'date'       => now()->format('Y-m-d'),
         ];
 
-        // Save the updated materials array back to the course.
         $this->course->materials = $materials;
         $this->course->save();
 
