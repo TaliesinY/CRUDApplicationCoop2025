@@ -67,7 +67,7 @@ Route::screen('/courses/{course}/assignments/{index}/edit', AssignmentEditScreen
 
 // Edit Material
 Route::screen('/courses/{course}/materials/{index}/edit', MaterialEditScreen::class)
-        ->name('platform.material.edit');
+    ->name('platform.material.edit');
 
 // Edit Course
 Route::screen('/courses/{course}/edit', CourseEditScreen::class)
@@ -78,6 +78,13 @@ Route::screen('course/{course}/assignment/{index}', AssignmentDetailsScreen::cla
 
 Route::screen('course/{course}/material/{index}', MaterialDetailsScreen::class)
     ->name('platform.material.details');
+
+Route::post('/courses/{course}/deleteMaterial', [\App\Orchid\Screens\CourseDetailsScreen::class, 'deleteMaterial'])
+->name('platform.material.delete');
+
+Route::post('/courses/{course}/deleteAssignment', [\App\Orchid\Screens\CourseDetailsScreen::class, 'deleteAssignment'])
+->name('platform.assignment.delete');
+
 
 // Platform > Profile
 Route::screen('profile', UserProfileScreen::class)

@@ -17,11 +17,20 @@ class AssignmentEditScreen extends Screen
 
     public function query(Course $course, int $index): array
     {
+        // Save the injected parameters to properties
+        $this->course = $course;
+        $this->index = $index;
+
         return [
-            'course' => $course,
-            'index' => $index,
-            'assignment' => $course->assignments[$index],
+            'course'     => $course,
+            'index'      => $index,
+            'assignment' => $course->assignments[$index] ?? null,
         ];
+    }
+
+    public function name(): string
+    {
+        return 'Edit Assignment';
     }
 
     public function layout(): array
@@ -42,12 +51,18 @@ class AssignmentEditScreen extends Screen
 
     public function updateAssignment(Request $request)
     {
-        $index = $this->index;
-        $this->course->assignments[$index] = [
-            'title' => $request->input('assignment.title'),
+        // Retrieve assignments into a local variable:
+        $assignments = $this->course->assignments;
+
+        // Update the assignment at the given index:
+        $assignments[$this->index] = [
+            'title'       => $request->input('assignment.title'),
             'description' => $request->input('assignment.description'),
-            'date' => now()->format('Y-m-d'),
+            'date'        => now()->format('Y-m-d'),
         ];
+
+        // Assign back and save:
+        $this->course->assignments = $assignments;
         $this->course->save();
 
         return redirect()->route('platform.course.details', $this->course);
