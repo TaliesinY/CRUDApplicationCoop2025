@@ -5,7 +5,10 @@ declare(strict_types=1);
 use App\Orchid\Screens\CoursesScreen;
 use App\Orchid\Screens\HomeScreen;
 use App\Orchid\Screens\CourseDetailsScreen;
+use App\Orchid\Screens\AssignmentEditScreen;
+use App\Orchid\Screens\MaterialEditScreen;
 use App\Orchid\Screens\CourseCreateScreen;
+use App\Orchid\Screens\CourseEditScreen;
 use App\Orchid\Screens\Role\RoleEditScreen;
 use App\Orchid\Screens\Role\RoleListScreen;
 use App\Orchid\Screens\User\UserEditScreen;
@@ -50,6 +53,18 @@ Route::screen('/courses/{course}', CourseDetailsScreen::class)
     ->breadcrumbs(fn (Trail $trail, $course) => $trail
         ->parent('platform.courses')
         ->push($course->name, route('platform.course.details', $course)));
+
+// Edit Assignment
+Route::screen('/courses/{course}/assignments/{index}/edit', AssignmentEditScreen::class)
+        ->name('platform.assignment.edit');
+
+// Edit Material
+Route::screen('/courses/{course}/materials/{index}/edit', MaterialEditScreen::class)
+        ->name('platform.material.edit');
+
+// Edit Course
+Route::screen('/courses/{course}/edit', CourseEditScreen::class)
+        ->name('platform.course.edit');
 
 
 // Platform > Profile

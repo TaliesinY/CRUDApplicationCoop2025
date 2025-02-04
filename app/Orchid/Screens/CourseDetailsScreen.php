@@ -3,10 +3,19 @@
 namespace App\Orchid\Screens;
 
 use App\Models\Course;
+use App\Models\Assignment;
+use App\Models\Material;
 use Orchid\Screen\Screen;
+use Orchid\Screen\Fields\Input;
+use Orchid\Screen\Actions\Link;
+use Orchid\Screen\Fields\TextArea;
+use Orchid\Screen\Fields\Upload;
+use Orchid\Screen\Actions\Button;
 use Orchid\Screen\Fields\Label;
 use Orchid\Support\Facades\Layout;
-use Orchid\Screen\Layouts\Tabs;
+use Orchid\Screen\TD;
+use Illuminate\Http\Request;
+use Orchid\Attachment\Models\Attachment;
 
 class CourseDetailsScreen extends Screen
 {
@@ -30,85 +39,190 @@ class CourseDetailsScreen extends Screen
     }
 
     public function layout(): array
-    {
-        return [
-            Layout::tabs([
-                'Stream' => Layout::rows([
-
-                    ...$this->getStreamContent(),
-                ]),
-
-                'Assignments' => Layout::rows([
-                    ...$this->getAssignmentsContent(),
-                ]),
-
-                'Students' => Layout::rows([
-                    Label::make('students')->title('Students')->value(implode(', ', $this->course->students ?? [])),
-                ]),
+{
+    return [
+        Layout::tabs([
+            'Stream' => Layout::rows([
+                TextArea::make('announcement')
+                    ->title('Post an Announcement')
+                    ->placeholder('Enter your announcement...')
+                    ->rows(3),
+                Button::make('Post Announcement')
+                    ->method('postAnnouncement'),
+                ...$this->getStreamContent(),
             ]),
-        ];
-    }
+
+            'Assignments' => Layout::rows([
+                Input::make('assignment.title')
+                    ->title('Assignment Title')
+                    ->placeholder('Enter assignment title'),
+                TextArea::make('assignment.description')
+                    ->title('Assignment Description')
+                    ->placeholder('Enter assignment description'),
+                Button::make('Post Assignment')
+                    ->method('postAssignment'),
+                ...$this->getAssignmentsContent(),
+            ]),
+
+            'Materials' => Layout::rows([
+                Input::make('material.title')
+                    ->title('Material Title')
+                    ->placeholder('Enter material title'),
+                Upload::make('material.attachment')
+                    ->title('Upload Material')
+                    ->acceptedFiles('.pdf,.doc,.docx,.ppt,.pptx'),
+                Button::make('Upload Material')
+                    ->method('uploadMaterial'),
+                ...$this->getMaterialsContent(),
+            ]),
+
+            'Students' => Layout::rows([
+                ...$this->getStudentsContent(),
+            ]),
+        ]),
+    ];
+}
+
+protected function getAssignmentsContent(): array
+{
+    return array_map(function ($assignment, $index) {
+        return Layout::rows([
+            Label::make('')
+                ->title('Assignment: ' . $assignment['title'])
+                ->value('Posted on: ' . ($assignment['date'] ?? now()->format('Y-m-d')) . '<br>' . $assignment['description']),
+            Button::make('Edit Assignment')
+                ->method('editAssignment')
+                ->parameters(['index' => $index]),
+            Button::make('Delete Assignment')
+                ->method('deleteAssignment')
+                ->parameters(['index' => $index]),
+        ]);
+    }, $this->course->assignments ?? [], array_keys($this->course->assignments ?? []));
+}
+
+public function editAssignment(Request $request)
+{
+    $index = $request->input('index');
+    $assignment = $this->course->assignments[$index];
+
+    return redirect()->route('platform.assignment.edit', [
+        'course' => $this->course->id,
+        'index' => $index,
+    ]);
+}
+
+public function deleteAssignment(Request $request)
+{
+    $index = $request->input('index');
+    $assignments = $this->course->assignments;
+    array_splice($assignments, $index, 1);
+    $this->course->assignments = $assignments;
+    $this->course->save();
+
+    return redirect()->route('platform.course.details', $this->course);
+}
 
     /**
      * Generate the stream content (assignments and materials sorted by date).
      */
     protected function getStreamContent(): array
     {
-        $assignments = $this->course->assignments ?? [];
-        $materials = $this->course->materials ?? [];
-
         $stream = [];
 
         // Add assignments to the stream
-        foreach ($assignments as $assignment) {
-            $stream[] = [
-                'type' => 'Assignment',
-                'title' => $assignment['title'] ?? 'Untitled Assignment',
-                'description' => $assignment['description'] ?? '',
-                'date' => $assignment['date'] ?? now()->format('Y-m-d'),
-            ];
-        }
-
-        // Add materials to the stream
-        foreach ($materials as $material) {
-            $stream[] = [
-                'type' => 'Material',
-                'title' => $material['title'] ?? 'Untitled Material',
-                'description' => $material['description'] ?? '',
-                'date' => $material['date'] ?? now()->format('Y-m-d'),
-            ];
-        }
-
-        // Sort the stream by date (newest first)
-        usort($stream, function ($a, $b) {
-            return strtotime($b['date']) - strtotime($a['date']);
-        });
-
-        $streamContent = [];
-        foreach ($stream as $item) {
-            $streamContent[] = Label::make('')
-                ->title($item['type'] . ': ' . $item['title'])
-                ->value('Posted on: ' . $item['date'] . '<br>' . $item['description']);
-        }
-
-        return $streamContent;
-    }
-
-    /**
-     * Generate the assignments content.
-     */
-    protected function getAssignmentsContent(): array
-    {
-        $assignments = $this->course->assignments ?? [];
-
-        $assignmentsContent = [];
-
-        foreach ($assignments as $assignment) {
-            $assignmentsContent[] = Label::make('')
+        foreach ($this->course->assignments ?? [] as $assignment) {
+            $stream[] = Label::make('')
                 ->title('Assignment: ' . $assignment['title'])
                 ->value('Posted on: ' . ($assignment['date'] ?? now()->format('Y-m-d')) . '<br>' . $assignment['description']);
         }
 
-        return $assignmentsContent;
+        // Add materials to the stream
+        foreach ($this->course->materials ?? [] as $material) {
+            $stream[] = Label::make('')
+                ->title('Material: ' . $material['title'])
+                ->value('Uploaded on: ' . ($material['date'] ?? now()->format('Y-m-d')));
+        }
+
+        // Sort the stream by date (newest first)
+        usort($stream, function ($a, $b) {
+            return strtotime($b->get('value')) - strtotime($a->get('value'));
+        });
+
+        return $stream;
     }
+
+    /**
+     * Generate the students content.
+     */
+    protected function getStudentsContent(): array
+    {
+        $studentsContent = [];
+
+        foreach ($this->course->students ?? [] as $student) {
+            $studentsContent[] = Label::make('')
+                ->title('Student: ' . $student['name']);
+        }
+
+        return $studentsContent;
+    }
+
+    /**
+     * Handle the form submission for posting an assignment.
+     */
+    public function postAssignment(Request $request)
+    {
+        $assignmentTitle = $request->input('assignment.title');
+        $assignmentDescription = $request->input('assignment.description');
+
+        // Add the new assignment to the course
+        $assignments = $this->course->assignments ?? [];
+        $assignments[] = [
+            'title' => $assignmentTitle,
+            'description' => $assignmentDescription,
+            'date' => now()->format('Y-m-d'),
+        ];
+        $this->course->assignments = $assignments;
+        $this->course->save();
+
+        return redirect()->route('platform.course.details', $this->course);
+    }
+
+    /**
+     * Handle the form submission for uploading a material.
+     */
+    public function uploadMaterial(Request $request)
+    {
+        $materialTitle = $request->input('material.title');
+        $materialAttachment = $request->input('material.attachment');
+
+        // Save the uploaded file
+        $attachment = Attachment::find($materialAttachment);
+
+        // Add the new material to the course
+        $materials = $this->course->materials ?? [];
+        $materials[] = [
+            'title' => $materialTitle,
+            'attachment' => $attachment->url,
+            'date' => now()->format('Y-m-d'),
+        ];
+        $this->course->materials = $materials;
+        $this->course->save();
+
+        return redirect()->route('platform.course.details', $this->course);
+    }
+
+    protected function getMaterialsContent(): array
+{
+    return array_map(function ($material, $index) {
+        return Layout::rows([
+            Label::make('')
+                ->title('Material: ' . $material['title'])
+                ->value('Uploaded on: ' . ($material['date'] ?? now()->format('Y-m-d'))),
+            Button::make('Delete Material')
+                ->method('deleteMaterial')
+                ->parameters(['index' => $index]),
+        ]);
+    }, $this->course->materials ?? [], array_keys($this->course->materials ?? []));
+}
+
 }

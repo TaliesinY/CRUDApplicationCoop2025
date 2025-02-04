@@ -4,10 +4,11 @@ namespace App\Orchid\Screens;
 
 use Orchid\Screen\Screen;
 use Orchid\Support\Facades\Layout;
-use Orchid\Screen\Actions\Menu;
 use App\Models\Course;
 use Orchid\Screen\Actions\Link;
 use Orchid\Screen\TD;
+use Orchid\Screen\Actions\Button;
+use Illuminate\Http\Request;
 
 class CoursesScreen extends Screen
 {
@@ -59,13 +60,51 @@ class CoursesScreen extends Screen
      * @return \Orchid\Screen\Layout[]|string[]
      */
     public function layout(): array
-    {
-        return [
-            Layout::table('courses', [
-                TD::make('name', 'Course Name')
-                    ->render(fn ($course) => Link::make($course->name)
-                        ->route('platform.course.details', $course->id)),
-            ]),
-        ];
-    }
+{
+    return [
+        Layout::table('courses', [
+            TD::make('name', 'Name')
+                ->render(fn ($course) =>
+                    "<a href='" . route('platform.course.details', $course->id) . "'
+                        class='text-primary font-bold'
+                        style='text-decoration: none;'>"
+                    . e($course->name) .
+                    "</a>"
+                )->width('300px'),
+
+            TD::make('actions', 'Actions')
+                ->render(function ($course) {
+                    return Button::make('Edit Course')
+                            ->method('editCourse')
+                            ->parameters(['id' => $course->id])
+                            ->icon('pencil')
+                            ->class('btn btn-primary btn-sm')
+                            ->render()
+                        . ' ' .
+                        Button::make('Delete Course')
+                            ->method('deleteCourse')
+                            ->parameters(['id' => $course->id])
+                            ->icon('trash')
+                            ->class('btn btn-danger btn-sm')
+                            ->render();
+                }),
+        ]),
+    ];
+}
+
+
+
+public function editCourse(Request $request)
+{
+    $courseId = $request->input('id');
+    return redirect()->route('platform.course.edit', $courseId);
+}
+
+public function deleteCourse(Request $request)
+{
+    $courseId = $request->input('id');
+    Course::find($courseId)->delete();
+
+    return redirect()->route('platform.courses');
+}
 }
